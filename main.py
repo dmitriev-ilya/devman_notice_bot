@@ -1,3 +1,4 @@
+import sys
 from time import sleep
 
 from environ import Env
@@ -30,7 +31,7 @@ if __name__ == '__main__':
             response = requests.get(
                 devman_long_polling_url,
                 headers=headers,
-                params=params,
+                params=params
             )
             response.raise_for_status()
             response_context = response.json()
@@ -55,7 +56,7 @@ if __name__ == '__main__':
                     parse_mode=telegram.ParseMode.HTML
                 )
         except requests.exceptions.ReadTimeout:
-            print('The server is not responding. Trying again')
+            print('The server is not responding. Trying again', file=sys.stderr)
         except requests.exceptions.ConnectionError:
-            print('Connection lost. Trying again')
+            print('Connection lost. Trying again', file=sys.stderr)
             sleep(1)

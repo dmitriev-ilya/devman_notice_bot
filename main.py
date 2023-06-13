@@ -1,5 +1,6 @@
 import sys
 from time import sleep
+import textwrap
 
 from environ import Env
 import requests
@@ -34,29 +35,31 @@ if __name__ == '__main__':
                 params=params
             )
             response.raise_for_status()
-            response_context = response.json()
-            if response_context['status'] == 'timeout':
-                params['timestamp'] = response_context.get('timestamp_to_request')
+            devman_api_content = response.json()
+            if devman_api_content['status'] == 'timeout':
+                params['timestamp'] = devman_api_content.get('timestamp_to_request')
                 continue
-            attempts = response_context['new_attempts']
+            attempts = devman_api_content['new_attempts']
             for attempt in attempts:
-                message_text = [
-                    f"Ваша работа <b>{attempt['lesson_title']}</b> вернулась с проверки",
-                    "",
-                    "<b>Работа принята преподавателем, можно приступать к следующему уроку!</b>",
-                    "",
-                    f"<a href=\"{attempt['lesson_url']}\">Ссылка на урок</a>"
-                ]
+                attempt_success = 'Работа принята преподавателем, можно приступать к следующему уроку!'
                 if attempt['is_negative']:
-                    message_text[2] = "<b>Работа не принята!</b>"
+                    attempt_success = 'Работа не принята!'
+                message_text = f"""\
+                    Ваша работа <b>{attempt['lesson_title']}</b> вернулась с проверки
+
+                    <b>{attempt_success}</b>
+
+                    <a href=\"{attempt['lesson_url']}\">Ссылка на урок</a>
+                """
+                dedented_message_text = textwrap.dedent(message_text)
 
                 bot.send_message(
-                    text='\n'.join(message_text),
+                    text=dedented_message_text,
                     chat_id=user_chat_id,
                     parse_mode=telegram.ParseMode.HTML
                 )
         except requests.exceptions.ReadTimeout:
-            print('The server is not responding. Trying again', file=sys.stderr)
+            continue
         except requests.exceptions.ConnectionError:
             print('Connection lost. Trying again', file=sys.stderr)
             sleep(1)

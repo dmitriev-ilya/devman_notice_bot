@@ -85,4 +85,4 @@ if __name__ == '__main__':
             sleep(1)
         except Exception as err:
             logger.error('Бот упал с ошибкой:')
-            logger.error(err)
+            logger.error(err, exc_info=True)

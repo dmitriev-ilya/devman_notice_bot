@@ -8,6 +8,18 @@ import requests
 import telegram
 
 
+class TelegramLogsHandler(logging.Handler):
+
+    def __init__(self, tg_bot, chat_id):
+        super().__init__()
+        self.chat_id = chat_id
+        self.tg_bot = tg_bot
+
+    def emit(self, record):
+        log_entry = self.format(record)
+        self.tg_bot.send_message(chat_id=self.chat_id, text=log_entry)
+
+
 if __name__ == '__main__':
     env = Env()
     env.read_env()
@@ -18,8 +30,11 @@ if __name__ == '__main__':
 
     bot = telegram.Bot(token=devman_tg_bot_token)
 
-    logging.basicConfig(level=logging.DEBUG)
-    logging.info('Bot started.')
+    logger = logging.getLogger('telegram')
+    logger.setLevel(logging.INFO)
+    logger.addHandler(TelegramLogsHandler(bot, user_chat_id))
+
+    logger.info('Бот запущен')
 
     headers = {
         'Authorization': f'Token {devman_api_token}'
@@ -62,8 +77,12 @@ if __name__ == '__main__':
                     chat_id=user_chat_id,
                     parse_mode=telegram.ParseMode.HTML
                 )
+
         except requests.exceptions.ReadTimeout:
             continue
         except requests.exceptions.ConnectionError:
-            print('Connection lost. Trying again', file=sys.stderr)
+            logger.error('Соединение потеряно. Пытаюсь переподключиться')
             sleep(1)
+        except Exception as err:
+            logger.error('Бот упал с ошибкой:')
+            logger.error(err)

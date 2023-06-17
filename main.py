@@ -1,6 +1,7 @@
 import sys
 from time import sleep
 import textwrap
+import logging
 
 from environ import Env
 import requests
@@ -16,6 +17,9 @@ if __name__ == '__main__':
     user_chat_id = env('USER_CHAT_ID')
 
     bot = telegram.Bot(token=devman_tg_bot_token)
+
+    logging.basicConfig(level=logging.DEBUG)
+    logging.info('Bot started.')
 
     headers = {
         'Authorization': f'Token {devman_api_token}'

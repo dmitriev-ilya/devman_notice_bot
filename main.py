@@ -1,4 +1,3 @@
-import sys
 from time import sleep
 import textwrap
 import logging
@@ -6,6 +5,9 @@ import logging
 from environ import Env
 import requests
 import telegram
+
+
+logger = logging.getLogger('telegram')
 
 
 class TelegramLogsHandler(logging.Handler):
@@ -30,7 +32,6 @@ if __name__ == '__main__':
 
     bot = telegram.Bot(token=devman_tg_bot_token)
 
-    logger = logging.getLogger('telegram')
     logger.setLevel(logging.INFO)
     logger.addHandler(TelegramLogsHandler(bot, user_chat_id))
 
